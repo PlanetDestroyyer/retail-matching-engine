@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Product Matcher & Classifier</title>
+    <!-- Google Fonts Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.3) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(15, 23, 42, 0.9) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(88, 28, 135, 0.25) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 2.5rem 1.5rem;
+            line-height: 1.5;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Style */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Glass Panel Base */
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Input Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            width: 100%;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Preset Buttons */
+        .presets-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .presets-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Action Buttons */
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.85rem 2rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            background: #1e293b;
+            color: #64748b;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Tracker */
+        .progress-box {
+            display: none;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin: 2rem 0;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+        }
+
+        .progress-step.active {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .progress-step.completed {
+            color: var(--success-color);
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
+
+        .progress-step.active .step-icon {
+            border-color: var(--info-color);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+            animation: pulseIcon 1.5s infinite;
+        }
+
+        .progress-step.completed .step-icon {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        /* Verdict Hero Banner */
+        .verdict-banner {
+            display: none;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            border: 1px solid var(--border-color);
+        }
+
+        .verdict-banner.exact_match {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.1);
+        }
+
+        .verdict-banner.size_diff {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.1);
+        }
+
+        .verdict-banner.color_diff {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.1);
+        }
+
+        .verdict-banner.no_match {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.1);
+        }
+
+        .verdict-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .verdict-content {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .verdict-title-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .verdict-badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 0.35rem 1rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+
+        .exact_match .verdict-badge {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .size_diff .verdict-badge {
+            background: var(--warning-color);
+            color: #000;
+        }
+
+        .color_diff .verdict-badge {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .no_match .verdict-badge {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .verdict-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Similarity Badges */
+        .similarity-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .similarity-pill {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .similarity-value {
+            color: var(--text-primary);
+        }
+
+        /* Side-by-Side Cards */
+        .comparison-results-grid {
+            display: none;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .comparison-results-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .product-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-image-container {
+            height: 250px;
+            background: rgba(15, 23, 42, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .product-image-container img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .product-info-box {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-grow: 1;
+        }
+
+        .product-store-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #60a5fa;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text-primary);
+            /* limit lines */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 0.5rem;
+        }
+
+        .product-brand {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: capitalize;
+        }
+
+        .product-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        /* Aligned Specifications Table */
+        .specs-panel {
+            display: none;
+            margin-bottom: 2rem;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title svg {
+            color: #a78bfa;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.925rem;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 1rem;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .spec-key {
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: capitalize;
+        }
+
+        .cell-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .status-cell {
+            text-align: center;
+            width: 80px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .status-badge.match {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .status-badge.mismatch {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        /* Unaligned Specs Panels */
+        .unaligned-grid {
+            display: none;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .unaligned-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .unaligned-box {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .unaligned-header {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Utility animations & general */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-15px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulseIcon {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loader-ring {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Matcher</h1>
+            <p>Dynamic Retail Product Comparison & Matching Engine</p>
+        </header>
+
+        <!-- Form Section -->
+        <div class="glass-panel">
+            <!-- Preset Controls -->
+            <div class="presets-row">
+                <span class="presets-label">Preset Pairs:</span>
+                <button class="preset-btn" onclick="loadPreset('hanes')">Hanes Pajama Shorts (Size Diff)</button>
+                <button class="preset-btn" onclick="loadPreset('us_polo')">U.S. Polo Assn. T-Shirt (Color Diff)</button>
+                <button class="preset-btn" onclick="loadPreset('levi')">Levi's Signature Jeans (Style Diff)</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="url1">Product 1 (Retailer A URL)</label>
+                    <input type="url" id="url1" placeholder="https://www.walmart.com/ip/..." value="">
+                </div>
+                <div class="input-group">
+                    <label for="url2">Product 2 (Retailer B URL)</label>
+                    <input type="url" id="url2"
+                        placeholder="https://www.target.com/p/... or https://www.amazon.com/dp/..." value="">
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button id="btnCompare" class="btn-submit" onclick="runComparison()">
+                    Compare Products
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress panel -->
+        <div class="glass-panel progress-box" id="progressBox">
+            <div class="progress-step active" id="stepScrape">
+                <div class="step-icon">1</div>
+                <span>Scraping product page contents (Concurrently using headless Chrome)...</span>
+            </div>
+            <div class="progress-step" id="stepExtract">
+                <div class="step-icon">2</div>
+                <span>Extracting and normalizing dynamic specification tables...</span>
+            </div>
+            <div class="progress-step" id="stepMatch">
+                <div class="step-icon">3</div>
+                <span>Aligning matching attributes and computing value similarity...</span>
+            </div>
+            <div class="progress-step" id="stepClassify">
+                <div class="step-icon">4</div>
+                <span>Running Match Verdict Classifier...</span>
+            </div>
+        </div>
+
+        <!-- Verdict Banner -->
+        <div class="verdict-banner" id="verdictBanner">
+            <div class="verdict-content">
+                <div class="verdict-title-box">
+                    <span class="verdict-badge" id="verdictBadge">Verdict</span>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.15rem;" id="verdictHeader">
+                            Comparison Verdict</h3>
+                        <p class="verdict-text" id="verdictSub">Resulting match criteria</p>
+                    </div>
+                </div>
+                <div class="similarity-row">
+                    <div class="similarity-pill">
+                        <span>Title Sim:</span>
+                        <span class="similarity-value" id="titleSimText">0%</span>
+                    </div>
+                    <div class="similarity-pill">
+                        <span>Image Sim:</span>
+                        <span class="similarity-value" id="imageSimText">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side by Side Product Display -->
+        <div class="comparison-results-grid" id="productGrid">
+            <!-- Retailer A -->
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img id="imgP1" src="" alt="Product 1 Image">
+                </div>
+                <div class="product-info-box">
+                    <span class="product-store-badge">Retailer A (Link 1)</span>
+                    <h3 class="product-title" id="titleP1">Product Title 1</h3>
+                    <div class="product-meta-row">
+                        <span class="product-brand" id="brandP1">Brand</span>
+                        <span class="product-price" id="priceP1">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retailer B -->
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img id="imgP2" src="" alt="Product 2 Image">
+                </div>
+                <div class="product-info-box">
+                    <span class="product-store-badge" id="storeBadgeP2">Retailer B (Link 2)</span>
+                    <h3 class="product-title" id="titleP2">Product Title 2</h3>
+                    <div class="product-meta-row">
+                        <span class="product-brand" id="brandP2">Brand</span>
+                        <span class="product-price" id="priceP2">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aligned Specs Table -->
+        <div class="glass-panel specs-panel" id="specsPanel">
+            <h2 class="panel-title">
+                <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" />
+                </svg>
+                Aligned Attribute Comparisons
+            </h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Specification</th>
+                            <th>Product 1 (Retailer A)</th>
+                            <th>Product 2 (Retailer B)</th>
+                            <th style="text-align: center;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="specsTableBody">
+                        <!-- Dynamic comparison rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Unaligned Attributes Accordion -->
+        <div class="unaligned-grid" id="unalignedGrid">
+            <div class="unaligned-box">
+                <div class="unaligned-header">Unique Retailer A Specifications</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unalignedP1Body">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="unaligned-box">
+                <div class="unaligned-header">Unique Retailer B Specifications</div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unalignedP2Body">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const presets = {
+            hanes: {
+                url1: "https://www.walmart.com/ip/2188112690",
+                url2: "https://www.target.com/p/hanes-premium-men-s-9-french-terry-pajama-shorts-2pk/-/A-84285642"
+            },
+            us_polo: {
+                url1: "https://www.walmart.com/ip/15159455754",
+                url2: "https://www.amazon.com/dp/B0D4358RS9?psc=1&th=1&vs=1"
+            },
+            levi: {
+                url1: "https://www.walmart.com/ip/5316226482",
+                url2: "https://www.amazon.com/dp/B09JZY5M72?psc=1&th=1&vs=1"
+            }
+        };
+
+        function loadPreset(key) {
+            if (presets[key]) {
+                document.getElementById('url1').value = presets[key].url1;
+                document.getElementById('url2').value = presets[key].url2;
+            }
+        }
+
+        // Dynamic step simulator for visual polish
+        let stepInterval = null;
+        function startProgressMock() {
+            const steps = ['stepScrape', 'stepExtract', 'stepMatch', 'stepClassify'];
+            let currentStepIdx = 0;
+
+            // Reset steps
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('active', 'completed');
+            });
+
+            // Set first active
+            document.getElementById(steps[0]).classList.add('active');
+
+            // Periodically advance the steps to show process flow, matching backend logs
+            stepInterval = setInterval(() => {
+                if (currentStepIdx < steps.length - 1) {
+                    const prevEl = document.getElementById(steps[currentStepIdx]);
+                    prevEl.classList.remove('active');
+                    prevEl.classList.add('completed');
+
+                    currentStepIdx++;
+                    const nextEl = document.getElementById(steps[currentStepIdx]);
+                    nextEl.classList.add('active');
+                }
+            }, 3000);
+        }
+
+        function stopProgressMock(success = true) {
+            if (stepInterval) {
+                clearInterval(stepInterval);
+                stepInterval = null;
+            }
+            const steps = ['stepScrape', 'stepExtract', 'stepMatch', 'stepClassify'];
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('active');
+                if (success) {
+                    el.classList.add('completed');
+                }
+            });
+        }
+
+        async function runComparison() {
+            const url1 = document.getElementById('url1').value.trim();
+            const url2 = document.getElementById('url2').value.trim();
+            const btn = document.getElementById('btnCompare');
+
+            if (!url1 || !url2) {
+                alert("Please provide both Product 1 and Product 2 URLs.");
+                return;
+            }
+
+            // Disable button & Reset output UI
+            btn.disabled = true;
+            btn.innerHTML = `<span class="loader-ring"></span> Comparing...`;
+
+            document.getElementById('progressBox').style.display = 'flex';
+            document.getElementById('verdictBanner').style.display = 'none';
+            document.getElementById('productGrid').style.display = 'none';
+            document.getElementById('specsPanel').style.display = 'none';
+            document.getElementById('unalignedGrid').style.display = 'none';
+
+            startProgressMock();
+
+            try {
+                const response = await fetch('/api/compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link_1_url: url1, link_2_url: url2 })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.detail || "Server failed to process comparison.");
+                }
+
+                const data = await response.json();
+                stopProgressMock(true);
+                renderResults(data);
+
+            } catch (e) {
+                stopProgressMock(false);
+                alert("Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Compare Products";
+                document.getElementById('progressBox').style.display = 'none';
+            }
+        }
+
+        function renderResults(data) {
+            // 1. Verdict Banner styling
+            const verdictBanner = document.getElementById('verdictBanner');
+            verdictBanner.className = 'verdict-banner'; // reset classes
+
+            let verdictLabel = "";
+            let verdictDesc = "";
+            let verdictClass = "";
+
+            switch (data.verdict) {
+                case 'CASE_A_EXACT_MATCH':
+                    verdictLabel = "Exact Match";
+                    verdictDesc = "Products are identical in brand, specifications, sizing, and color scheme.";
+                    verdictClass = 'exact_match';
+                    break;
+                case 'CASE_B_SIZE_DIFF':
+                    verdictLabel = "Size Difference";
+                    verdictDesc = "Matches identically on style and color, but differs in clothing size or quantity packaging.";
+                    verdictClass = 'size_diff';
+                    break;
+                case 'CASE_C_COLOR_DIFF':
+                    verdictLabel = "Color Difference";
+                    verdictDesc = "Matches identically on style and size, but varies in colors or designs.";
+                    verdictClass = 'color_diff';
+                    break;
+                default:
+                    verdictLabel = "No Match";
+                    verdictDesc = "Significant mismatches found in product brand, structure, style, or specifications.";
+                    verdictClass = 'no_match';
+            }
+
+            verdictBanner.classList.add(verdictClass);
+            document.getElementById('verdictBadge').textContent = verdictLabel;
+            document.getElementById('verdictHeader').textContent = verdictLabel;
+            document.getElementById('verdictSub').textContent = verdictDesc;
+
+            // Similarities
+            const titleSim = data.comparison.title_similarity;
+            const imgSim = data.comparison.image_similarity;
+            document.getElementById('titleSimText').textContent = titleSim >= 0 ? `${titleSim}%` : 'N/A';
+            document.getElementById('imageSimText').textContent = imgSim >= 0 ? `${imgSim}%` : 'N/A';
+
+            verdictBanner.style.display = 'block';
+
+            // 2. Product Side-by-Side Cards
+            const p1 = data.product_1;
+            const p2 = data.product_2;
+
+            document.getElementById('imgP1').src = p1.image || 'https://via.placeholder.com/250x250?text=No+Image';
+            document.getElementById('titleP1').textContent = p1.title;
+            document.getElementById('brandP1').textContent = p1.brand || 'Unbranded';
+            document.getElementById('priceP1').textContent = p1.price;
+
+            document.getElementById('imgP2').src = p2.image || 'https://via.placeholder.com/250x250?text=No+Image';
+            document.getElementById('titleP2').textContent = p2.title;
+            document.getElementById('brandP2').textContent = p2.brand || 'Unbranded';
+            document.getElementById('priceP2').textContent = p2.price;
+
+            // Statically set to Retailer B badge
+            document.getElementById('storeBadgeP2').textContent = "Retailer B (Link 2)";
+
+            document.getElementById('productGrid').style.display = 'grid';
+
+            // 3. Aligned Specifications Table
+            const tbody = document.getElementById('specsTableBody');
+            tbody.innerHTML = ''; // clear
+
+            const diffs = data.comparison.feature_diff;
+            let alignedCount = 0;
+
+            // Separate aligned vs unaligned specifications
+            const unalignedP1 = [];
+            const unalignedP2 = [];
+
+            for (const [key, d] of Object.entries(diffs)) {
+                const hasP1 = d.link_1_key !== null;
+                const hasP2 = d.link_2_key !== null;
+
+                if (hasP1 && hasP2) {
+                    alignedCount++;
+                    const tr = document.createElement('tr');
+
+                    // Key name (cleaned)
+                    const tdKey = document.createElement('td');
+                    tdKey.className = 'spec-key';
+                    tdKey.textContent = key.replace(/_/g, ' ');
+                    tr.appendChild(tdKey);
+
+                    // Value 1
+                    const tdV1 = document.createElement('td');
+                    tdV1.className = 'cell-value';
+                    tdV1.textContent = formatValue(d.link_1_value);
+                    tr.appendChild(tdV1);
+
+                    // Value 2
+                    const tdV2 = document.createElement('td');
+                    tdV2.className = 'cell-value';
+                    tdV2.textContent = formatValue(d.link_2_value);
+                    tr.appendChild(tdV2);
+
+                    // Match Status icon
+                    const tdStatus = document.createElement('td');
+                    tdStatus.className = 'status-cell';
+                    if (d.match) {
+                        tdStatus.innerHTML = `<span class="status-badge match">✓</span>`;
+                    } else {
+                        tdStatus.innerHTML = `<span class="status-badge mismatch">✗</span>`;
+                    }
+                    tr.appendChild(tdStatus);
+
+                    tbody.appendChild(tr);
+                } else if (hasP1) {
+                    unalignedP1.push({ key: key.replace(/_/g, ' '), val: d.link_1_value });
+                } else if (hasP2) {
+                    unalignedP2.push({ key: key.replace(/_/g, ' '), val: d.link_2_value });
+                }
+            }
+
+            if (alignedCount > 0) {
+                document.getElementById('specsPanel').style.display = 'block';
+            }
+
+            // 4. Unaligned Table rendering
+            const tbodyU1 = document.getElementById('unalignedP1Body');
+            tbodyU1.innerHTML = '';
+            if (unalignedP1.length > 0) {
+                unalignedP1.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="spec-key">${item.key}</td><td class="cell-value">${formatValue(item.val)}</td>`;
+                    tbodyU1.appendChild(tr);
+                });
+            } else {
+                tbodyU1.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-secondary);">No unique specifications.</td></tr>`;
+            }
+
+            const tbodyU2 = document.getElementById('unalignedP2Body');
+            tbodyU2.innerHTML = '';
+            if (unalignedP2.length > 0) {
+                unalignedP2.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="spec-key">${item.key}</td><td class="cell-value">${formatValue(item.val)}</td>`;
+                    tbodyU2.appendChild(tr);
+                });
+            } else {
+                tbodyU2.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-secondary);">No unique specifications.</td></tr>`;
+            }
+
+            document.getElementById('unalignedGrid').style.display = 'grid';
+        }
+
+        function formatValue(val) {
+            if (val === null || val === undefined) return '-';
+            if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+            if (typeof val === 'object') return JSON.stringify(val);
+            return String(val);
+        }
+    </script>
+</body>
+
+</html>
