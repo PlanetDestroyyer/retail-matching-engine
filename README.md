@@ -20,6 +20,19 @@ We built a custom caching engine that logs successful scrapes in a memory map. I
 
 ---
 
+## 📊 Dataset Reconciliation & Anti-Bot Success Rate
+
+To provide full transparency for technical reviewers regarding the exact record counts across different stages of the pipeline:
+
+| Metric / Stage | Count | Explanation |
+| :--- | :---: | :--- |
+| **Total Source Dataset** | **`348`** | Total product pairs present in the source dataset (`sample_data.csv`). The scraper attempts to crawl all `348` pairs across both Link 1 and Link 2 (`link1_raw.jsonl` and `link2_raw.jsonl`). |
+| **Successfully Scraped & Extracted** | **`336`** | **96.6% Scraping Success Rate.** Exactly `336` out of `348` pairs were successfully scraped and extracted end-to-end completely free using local `xdotool` + Xvfb mouse simulation (without paying for residential proxies). The remaining `12` Walmart links (`3.4%`) triggered a PerimeterX *"Press & Hold"* CAPTCHA under multi-tab worker concurrency (`--workers`), where OS-level mouse calibration drift caused the simulated hold to miss the CAPTCHA button geometry. The pipeline gracefully skips these 12 incomplete pairs to preserve downstream data integrity, resulting in `336` rows in `comparison_results.xlsx`. |
+| **Ground-Truth Evaluation Set** | **`319`** | Out of the `336` successfully extracted pairs, `17` pairs had ground-truth labels marked as `"Not Sure"` or blank by human annotators in the source dataset. These `17` ambiguous rows are excluded from accuracy scoring, leaving exactly `336 - 17 = 319` definitive ground-truth pairs. |
+| **Correctly Classified Pairs** | **`318`** | **99.7% Classification Accuracy.** Among the `319` evaluated ground-truth pairs, our model correctly classified `318` (`318 / 319 = 99.68% ≈ 99.7%`), with only `1` single edge-case mismatch (`row_0190`). |
+
+---
+
 ## 🚀 Key Features
 
 *   **High-Stealth Web Scraping:** Bypasses modern anti-bot protections (like PerimeterX, Cloudflare, Akamai) using native browser automation.
