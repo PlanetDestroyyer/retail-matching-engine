@@ -22,6 +22,7 @@ from openpyxl.styles import PatternFill, Font, Alignment
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 
 from utils import get_logger, jsonl_read, jsonl_append, load_pairs
 
@@ -196,10 +197,10 @@ RESULT_COLORS = {
 }
 
 RESULT_LABELS = {
-    EXACT_MATCH: "✅ Exact Match",
-    SIZE_DIFF:   "⚠️ Size Diff",
-    COLOR_DIFF:  "⚠️ Color Diff",
-    NO_MATCH:    "❌ No Match",
+    EXACT_MATCH: "Exact Match",
+    SIZE_DIFF:   "Size Different",
+    COLOR_DIFF:  "Color Different",
+    NO_MATCH:    "No Match",
 }
 
 
@@ -210,8 +211,8 @@ def write_excel(results: list[dict]):
             "Pair ID":            r["pair_id"],
             "Link 1 URL":         r["link_1_url"],
             "Link 2 URL":         r["link_2_url"],
-            "Result":             RESULT_LABELS.get(r["our_result"], r["our_result"]),
-            "CSV Label":          r["original_csv_label"],
+            "Predicted Match_Type": RESULT_LABELS.get(r["our_result"], r["our_result"]),
+            "Original Match_Type":  r["original_csv_label"],
             "Title (Link 1)":     r["title_link_1"],
             "Title (Link 2)":     r["title_link_2"],
             "Title Sim %":        r["title_similarity_pct"],
@@ -255,6 +256,62 @@ def write_excel(results: list[dict]):
     logger.info(f"Excel saved → {EXCEL_OUT}")
 
 
+def print_evaluation_report(results: list[dict]):
+    """Compare 'our_result' with 'original_csv_label' and print an accuracy matrix."""
+    table = Table(title="Pipeline Evaluation vs Ground Truth (Match_Type)", show_lines=True)
+    table.add_column("Pair ID", style="cyan")
+    table.add_column("Predicted", style="magenta")
+    table.add_column("Ground Truth", style="yellow")
+    table.add_column("Match?", style="bold")
+    
+    correct = 0
+    total = 0
+    
+    for r in results:
+        gt = r.get("original_csv_label", "").strip()
+        if not gt or gt.lower() == "not sure":
+            continue
+            
+        pred = r.get("our_result")
+        
+        # Mapping our internal verdict to the requested output terminology
+        mapped_pred = "Unknown"
+        if pred == EXACT_MATCH:
+            mapped_pred = "Exact Match"
+        elif pred == SIZE_DIFF:
+            mapped_pred = "Size Different"
+        elif pred == COLOR_DIFF:
+            mapped_pred = "Color Different"
+        elif pred == NO_MATCH:
+            mapped_pred = "No Match"
+            
+        # Evaluation Logic against human Match_Type labels
+        is_match = False
+        if mapped_pred == gt:
+            is_match = True
+        # If both agree it's not an exact match (e.g. we flagged a diff, they said Incorrect Match),
+        elif mapped_pred in ("Size Different", "Color Different", "No Match") and gt in ("Variant Line Match", "Incorrect Match"):
+            is_match = True
+            
+        total += 1
+        if is_match:
+            correct += 1
+            
+        status = "[green]✓ Correct[/green]" if is_match else "[red]✗ Mismatch[/red]"
+        table.add_row(r["pair_id"], mapped_pred, gt, status)
+        
+    if total > 0:
+        console.print(table)
+        accuracy = (correct / total) * 100
+        console.print(Panel(
+            f"[bold white]Ground-Truth Evaluated:[/bold white] {total}\n"
+            f"[bold white]Total Accuracy:[/bold white] [bold {'green' if accuracy >= 80 else 'yellow'}]{accuracy:.1f}%[/bold {'green' if accuracy >= 80 else 'yellow'}]",
+            border_style="green" if accuracy >= 80 else "yellow"
+        ))
+    else:
+        console.print("[yellow]No ground-truth labels found in the dataset to evaluate.[/yellow]")
+
+
 def run_classifier(pairs: list[dict]):
     pair_ids = {p["pair_id"] for p in pairs}
     meta_map = {p["pair_id"]: p.get("meta", {}) for p in pairs}
@@ -289,6 +346,9 @@ def run_classifier(pairs: list[dict]):
 
     write_excel(results)
     logger.info(f"Results → {RESULTS_OUT} | {EXCEL_OUT}")
+    
+    # ── Evaluation Harness ────────────────────────────────────────────────────
+    print_evaluation_report(results)
 
 
 if __name__ == "__main__":

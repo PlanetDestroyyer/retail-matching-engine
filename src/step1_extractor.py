@@ -23,6 +23,12 @@ from PIL import Image
 import imagehash
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
+try:
+    from rembg import remove
+    REMBG_AVAILABLE = True
+except ImportError:
+    REMBG_AVAILABLE = False
+
 from utils import get_logger, jsonl_read, jsonl_append, jsonl_index_composite, load_pairs
 
 logger = get_logger("step1_extractor")
@@ -336,7 +342,22 @@ def compute_image_hashes(image_urls: list[str]) -> list[dict]:
             resp = httpx.get(url, timeout=10, follow_redirects=True,
                              headers={"User-Agent": "Mozilla/5.0"})
             if resp.status_code == 200:
-                img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                raw_bytes = resp.content
+                
+                if REMBG_AVAILABLE:
+                    try:
+                        # Remove background using AI (U-2-Net)
+                        processed_bytes = remove(raw_bytes)
+                        img_transparent = Image.open(io.BytesIO(processed_bytes)).convert("RGBA")
+                        # Composite onto a pure white background for consistent hashing
+                        img = Image.new("RGB", img_transparent.size, (255, 255, 255))
+                        img.paste(img_transparent, mask=img_transparent.split()[3])
+                    except Exception as e:
+                        logger.warning(f"rembg failed for {url}: {e}. Falling back to original image.")
+                        img = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+                else:
+                    img = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+
                 phash = str(imagehash.phash(img))
                 dhash = str(imagehash.dhash(img))
                 hashes.append({"url": url, "phash": phash, "dhash": dhash})

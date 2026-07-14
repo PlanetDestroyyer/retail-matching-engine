@@ -43,15 +43,10 @@ env/
 logs/
 *.log
 
-# Dynamically generated pipeline data
-data/raw/*
-data/features/*
-data/output/*
-
-# Keep directories but ignore files inside
-!data/raw/.gitkeep
-!data/features/.gitkeep
-!data/output/.gitkeep
+# Pipeline data is intentionally tracked
+# data/raw/*
+# data/features/*
+# data/output/*
 
 # Scratch directories
 scratch/
@@ -59,3 +54,6 @@ scratch/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Headless browser cache
+chrome_profile/

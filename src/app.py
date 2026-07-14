@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from loguru import logger
 
 # Import step modules
-from src.step0_scraper import scrape_single_url_content
+from src.step0_scraper import scrape_single_url_content, scrape_urls_concurrently
 from src.step1_extractor import extract_features
 from src.step2_matcher import compute_diff
 from src.step3_classifier import classify
@@ -37,9 +37,8 @@ async def api_compare(req: CompareRequest):
 
     # 1. Scrape concurrently
     try:
-        raw1_task = scrape_single_url_content(url1)
-        raw2_task = scrape_single_url_content(url2)
-        raw1, raw2 = await asyncio.gather(raw1_task, raw2_task)
+        results = await scrape_urls_concurrently([url1, url2])
+        raw1, raw2 = results[0], results[1]
     except Exception as e:
         logger.error(f"Scraping failed: {e}")
         raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
@@ -52,8 +51,11 @@ async def api_compare(req: CompareRequest):
         rec1 = {"pair_id": "web_run", "link_key": "link_1", "url": url1, "status": "ok", "raw": raw1}
         rec2 = {"pair_id": "web_run", "link_key": "link_2", "url": url2, "status": "ok", "raw": raw2}
         
-        feat1 = extract_features(rec1)
-        feat2 = extract_features(rec2)
+        loop = asyncio.get_running_loop()
+        feat1, feat2 = await asyncio.gather(
+            loop.run_in_executor(None, extract_features, rec1),
+            loop.run_in_executor(None, extract_features, rec2)
+        )
     except Exception as e:
         logger.error(f"Feature extraction failed: {e}")
         raise HTTPException(status_code=500, detail=f"Feature extraction failed: {str(e)}")

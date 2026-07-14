@@ -36,11 +36,11 @@ def banner(text: str, color: str = "cyan"):
     console.print(Rule(f"[bold {color}]{text}[/bold {color}]", style=color))
 
 
-def run_pipeline(step: str, limit: int | None, workers: int):
-    pairs = load_pairs("data.csv", limit=limit)
+def run_pipeline(step: str, limit: int | None, workers: int, csv_path: str):
+    pairs = load_pairs(csv_path, limit=limit)
     console.print(Panel(
         f"[bold white]Product Comparison Pipeline[/bold white]\n"
-        f"Step: [cyan]{step}[/cyan]  |  Pairs: [yellow]{len(pairs)}[/yellow]  |  Workers: [green]{workers}[/green]",
+        f"CSV Source: [yellow]{csv_path}[/yellow]  |  Step: [cyan]{step}[/cyan]  |  Pairs: [yellow]{len(pairs)}[/yellow]  |  Workers: [green]{workers}[/green]",
         border_style="bright_blue"
     ))
 
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--limit",   type=int, default=None, help="Limit number of pairs")
     parser.add_argument("--workers", type=int, default=3,    help="Concurrent scraper workers")
+    parser.add_argument("--csv",     type=str, default="data.csv", help="CSV path to load pairs from")
     args = parser.parse_args()
 
-    run_pipeline(args.step, args.limit, args.workers)
+    run_pipeline(args.step, args.limit, args.workers, args.csv)
